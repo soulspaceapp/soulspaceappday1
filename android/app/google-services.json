@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "978476596075",
+    "project_id": "soulspaceapp-pbts",
+    "storage_bucket": "soulspaceapp-pbts.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:978476596075:android:9ac804c2f7303b59d9aa2e",
+        "android_client_info": {
+          "package_name": "com.example.soulspaceapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4o7U39tJLWvBg-jILrlPyVerLz8uJATg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

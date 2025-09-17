@@ -1,3 +1,16 @@
+// Top-level build file for Flutter with Firebase (Kotlin DSL)
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Firebase Gradle plugin
+        classpath("com.google.gms:google-services:4.4.2")
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -5,6 +18,7 @@ allprojects {
     }
 }
 
+// Flutter manages build dirs differently
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")
