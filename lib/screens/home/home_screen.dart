@@ -7,7 +7,6 @@ import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -15,45 +14,44 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
+  static const List<String> _titles = [
+    'SoulSpace Feed',
+    'Groups',
+    'Quotes',
+    'Professionals',
+    'Profile',
+  ];
+
   final List<Widget> _pages = const [
-    FeedScreen(),
+    FeedScreen(), // note: this is a Widget, not a full Scaffold
     GroupsScreen(),
     QuotesScreen(),
     ProfessionalsScreen(),
     ProfileScreen(),
   ];
 
-  final List<String> _titles = const [
-    "SoulSpace Feed",
-    "Groups",
-    "Quotes",
-    "Professionals",
-    "Profile",
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  void _onItemTapped(int idx) => setState(() => _selectedIndex = idx);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_titles[_selectedIndex])),
+      appBar: AppBar(
+        title: Text(_titles[_selectedIndex]),
+        backgroundColor: Colors.deepPurple,
+      ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         selectedItemColor: Colors.deepPurple,
         unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Feed"),
-          BottomNavigationBarItem(icon: Icon(Icons.group), label: "Groups"),
-          BottomNavigationBarItem(icon: Icon(Icons.format_quote), label: "Quotes"),
-          BottomNavigationBarItem(icon: Icon(Icons.medical_services), label: "Pros"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
+          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Groups'),
+          BottomNavigationBarItem(icon: Icon(Icons.format_quote), label: 'Quotes'),
+          BottomNavigationBarItem(icon: Icon(Icons.medical_services), label: 'Pros'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

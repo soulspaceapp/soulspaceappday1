@@ -6,7 +6,7 @@ class QuotesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(child: Text("Groups Page Coming Soon")),
+      body: Center(child: Text("Quotes Page Coming Soon")),
     );
   }
 }

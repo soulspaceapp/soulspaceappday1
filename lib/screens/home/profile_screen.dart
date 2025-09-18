@@ -1,115 +1,133 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../auth/login_screen.dart'; // adjust path to your login screen
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
-
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final user = FirebaseAuth.instance.currentUser!;
-  String? name;
-  String? email;
-  String? avatar;
-
+  final user = FirebaseAuth.instance.currentUser;
+  bool _loading = true;
+  String name = '';
+  String email = '';
+  String avatar = '';
   final List<String> avatarOptions = [
-    "https://i.pravatar.cc/150?img=1",
-    "https://i.pravatar.cc/150?img=2",
-    "https://i.pravatar.cc/150?img=3",
-    "https://i.pravatar.cc/150?img=4",
-    "https://i.pravatar.cc/150?img=5",
+    'https://i.pravatar.cc/150?img=1',
+    'https://i.pravatar.cc/150?img=2',
+    'https://i.pravatar.cc/150?img=3',
+    'https://i.pravatar.cc/150?img=4',
+    'https://i.pravatar.cc/150?img=5',
   ];
+  final _nameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _load();
   }
 
-  Future<void> _loadProfile() async {
-    final doc = await FirebaseFirestore.instance
-        .collection("users")
-        .doc(user.uid)
-        .get();
-
+  Future<void> _load() async {
+    if (user == null) {
+      setState(() => _loading = false);
+      return;
+    }
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+    final data = doc.exists ? (doc.data() ?? {}) : {};
     setState(() {
-      name = doc["name"];
-      email = doc["email"];
-      avatar = doc["avatar"] ?? avatarOptions.first;
+      name = (data['name'] as String?) ?? (user!.displayName ?? 'Anonymous');
+      email = (data['email'] as String?) ?? (user!.email ?? '');
+      avatar = (data['avatar'] as String?) ?? avatarOptions.first;
+      _nameController.text = name;
+      _loading = false;
     });
   }
 
-  Future<void> _updateAvatar(String url) async {
-    await FirebaseFirestore.instance
-        .collection("users")
-        .doc(user.uid)
-        .update({"avatar": url});
+  Future<void> _updateProfile() async {
+    if (user == null) return;
+    final newName = _nameController.text.trim();
+    await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
+      'name': newName.isEmpty ? name : newName,
+      'avatar': avatar,
+      'email': email,
+    }, SetOptions(merge: true));
     setState(() {
-      avatar = url;
+      name = newName.isEmpty ? name : newName;
     });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated')));
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    // navigate to login - adjust path/import if needed
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (name == null || email == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+    if (_loading) return const Center(child: CircularProgressIndicator());
+
+    if (user == null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Not signed in'),
+            ElevatedButton(onPressed: _logout, child: const Text('Go to Login')),
+          ],
+        ),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Profile"),
-        backgroundColor: Colors.deepPurple,
-      ),
-      body: Padding(
+    return SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // 👤 Current Avatar
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(avatar ?? avatarOptions.first),
-            ),
-            const SizedBox(height: 10),
-
-            Text(
-              name!,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              email!,
-              style: const TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-
+            CircleAvatar(radius: 50, backgroundImage: NetworkImage(avatar)),
+            const SizedBox(height: 12),
+            Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(email, style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 20),
-            const Text(
-              "Choose Your Avatar",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
 
-            const SizedBox(height: 10),
+            TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Display name')),
 
-            // 🖼️ Avatar options
+            const SizedBox(height: 12),
+            const Text('Choose avatar:'),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 10,
-              children: avatarOptions.map((url) {
+              children: avatarOptions.map((a) {
+                final selected = a == avatar;
                 return GestureDetector(
-                  onTap: () => _updateAvatar(url),
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundImage: NetworkImage(url),
-                    child: avatar == url
-                        ? const Icon(Icons.check_circle,
-                            color: Colors.green, size: 30)
-                        : null,
+                  onTap: () async {
+                    setState(() => avatar = a);
+                    await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({'avatar': a}, SetOptions(merge: true));
+                  },
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircleAvatar(radius: 28, backgroundImage: NetworkImage(a)),
+                      if (selected)
+                        const Positioned(
+                          right: -2,
+                          bottom: -2,
+                          child: Icon(Icons.check_circle, color: Colors.green, size: 22),
+                        ),
+                    ],
                   ),
                 );
               }).toList(),
             ),
+
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: _updateProfile, child: const Text('Save')),
+            const SizedBox(height: 12),
+            ElevatedButton(onPressed: _logout, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: const Text('Log out')),
           ],
         ),
       ),

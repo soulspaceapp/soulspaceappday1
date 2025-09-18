@@ -6,7 +6,7 @@ class ProfessionalsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(child: Text("Groups Page Coming Soon")),
+      body: Center(child: Text("Professional Page Coming Soon")),
     );
   }
 }
